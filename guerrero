@@ -1,0 +1,40 @@
+package dominio;
+
+
+// el atributo unico del Guerrero es que enfurecido ataca con más ferocidad y tolera más el daño
+public class Guerrero extends personajes {
+	private boolean enfurecido;
+
+	public Guerrero(String nombre, int saludActual, int nivel, boolean enfurecido) {
+		super(nombre, saludActual, nivel);
+		this.enfurecido = enfurecido;
+	} 
+	
+	public boolean estaEnfurecido() {
+		return this.enfurecido;
+	}
+
+	public void setEnfurecido(boolean enfurecido) {
+		this.enfurecido = enfurecido;
+	}
+
+	public int generaAtaque() {
+		int ataque = super.generaAtaque(); // cero si está inhabilitado
+		if (this.enfurecido) {
+			ataque = ataque + ataque * 30 / 100; // furia: +30% de ataque
+		}
+		return ataque;
+	} // fin generaAtaque
+
+	public boolean recibeAtaque(int ataque) {
+		int ataqueFinal = ataque;
+		if (this.enfurecido) {
+			ataqueFinal = ataque - ataque * 30 / 100; // furia: tolera 30% más daño
+		}
+		return super.recibeAtaque(ataqueFinal);
+	} // fin recibeAtaque
+
+	public String toString() {
+		String estado = this.enfurecido ? "enfurecido" : "calmado";
+		return super.toString() + " Estoy " + estado + ".";
+	}
