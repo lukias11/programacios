@@ -1,1 +1,73 @@
+package dominio;
 
+ //Clase base (superclase) de todos los personajes.
+ //Guarda los datos comunes (nombre, salud, nivel) y el comportamiento
+ // por defecto de atacar y recibir ataques. Las subclases lo modifican.
+ 
+public class personajes {
+	private String nombre;      // identifica al personaje de forma única
+	private int saludActual;    // puntos de salud actuales (0 = debilitado)
+	private int nivel;          // nivel de experiencia
+
+	public personajes(String nombre, int saludActual, int nivel) {
+		// verificar si los datos son validos
+		if (nombre == null || nombre.isBlank() ||
+			saludActual < 0 ||
+			nivel <= 0) {
+
+		}
+		// datos válidos, crear el Personaje
+		this.nombre = nombre;
+		this.saludActual = saludActual;
+		this.nivel = nivel;
+	} // fin constructor
+
+	public String getNombre() {
+		return this.nombre;
+	}
+
+	public int getSaludActual() {
+		return this.saludActual;
+	}
+
+	public int getNivel() {
+		return this.nivel;
+	}
+
+	public void setSaludActual(int saludActual) {
+		// la salud nunca puede ser negativa
+		this.saludActual = Math.max(0, saludActual);
+	} // fin setSaludActual
+
+	//Con salud cero el personaje queda inhabilitado
+	public boolean estaInhabilitado() {
+		return (this.saludActual == 0);
+	} // fin estaInhabilitado
+
+	// Ataque base según el nivel. Si está inhabilitado vale cero
+	public int generaAtaque() {
+		if (this.estaInhabilitado()) {
+			return 0;
+		}
+		return this.nivel * 10;
+	} // fin generaAtaque
+
+	//Reduce la salud según el ataque recibido (sin bajar de cero)
+	//Las subclases primero mitigan el valor y luego llaman a este método
+	//Retorna true si el ataque se aplicó, false si ya estaba inhabilitado
+	
+	public boolean recibeAtaque(int ataque) {
+		if (this.estaInhabilitado()) {
+			return false;
+		}
+		int dano = Math.max(0, ataque); // un ataque negativo cuenta como daño cero
+		this.setSaludActual(this.saludActual - dano);
+		return true;
+	} // fin recibeAtaque
+
+	public String toString() {
+		String estado = this.estaInhabilitado() ? " (INHABILITADO)" : "";
+		return this.nombre + " - Nivel " + this.nivel + " - Salud " + this.saludActual + estado + ".";
+	}
+
+} // fin clase
