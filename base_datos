@@ -1,0 +1,17 @@
+CREATE DATABASE IF NOT EXISTS rol_wow;
+USE rol_wow;
+
+-- Una sola tabla para los 4 tipos de personaje.
+-- Tipos: "P" - Pícaro, "G" - Guerrero, "CM" - Caballero de la Muerte, "C" - Cazador
+CREATE TABLE IF NOT EXISTS personajes (
+	nombre             VARCHAR(50) NOT NULL PRIMARY KEY,
+	tipo               VARCHAR(2)  NOT NULL,
+	nivel              INT         NOT NULL,
+	salud              INT         NOT NULL,
+	fuerza             INT         NOT NULL DEFAULT 0,
+	agilidad           INT         NOT NULL DEFAULT 0,
+	sigilo             BOOLEAN     NOT NULL DEFAULT FALSE,
+	enfurecido         BOOLEAN     NOT NULL DEFAULT FALSE,
+	poder_runico       INT         NOT NULL DEFAULT 0,
+	vinculo_espiritual INT         NOT NULL DEFAULT 0
+);
