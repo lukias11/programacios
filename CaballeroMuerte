@@ -1,0 +1,44 @@
+package dominio;
+
+public class CaballeroMuerte extends Personaje {
+	public static int PODER_RUNICO_MAXIMO = 100;
+
+	private int fuerza;
+	private int poderRunico;
+
+	public CaballeroMuerte(String nombre, int nivel, int fuerza, int poderRunico) {
+		super(nombre, nivel);
+		this.fuerza = fuerza;
+		this.poderRunico = poderRunico;
+	} // fin constructor
+
+	public int getFuerza() {
+		return this.fuerza;
+	}
+
+	public int getPoderRunico() {
+		return this.poderRunico;
+	}
+
+	@Override
+	public int calcularAtaque() {
+		return this.fuerza + this.getNivel();
+	} // fin calcularAtaque
+
+	@Override
+	public int mitigarDanio(int ataque) {
+		// la barrera reduce el daño en (poderRunico / 2) por ciento (máximo 50%)
+		int porcentaje = this.poderRunico / 2;
+		return ataque - ataque * porcentaje / 100;
+	} // fin mitigarDanio
+
+	@Override
+	public String getTipo() {
+		return "Caballero de la Muerte";
+	}
+
+	public String toString() {
+		return super.toString() + "\nFuerza: " + this.fuerza + "\nPoder rúnico: " + this.poderRunico;
+	}
+
+} // fin clase
