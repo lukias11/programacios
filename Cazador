@@ -1,0 +1,44 @@
+package dominio;
+
+public class Cazador extends Personaje {
+	public static int VINCULO_MAXIMO = 100;
+
+	private int agilidad;
+	private int vinculoEspiritual;
+
+	public Cazador(String nombre, int nivel, int agilidad, int vinculoEspiritual) {
+		super(nombre, nivel);
+		this.agilidad = agilidad;
+		this.vinculoEspiritual = vinculoEspiritual;
+	} // fin constructor
+
+	public int getAgilidad() {
+		return this.agilidad;
+	}
+
+	public int getVinculoEspiritual() {
+		return this.vinculoEspiritual;
+	}
+
+	@Override
+	public int calcularAtaque() {
+		return this.agilidad + this.getNivel();
+	} // fin calcularAtaque
+
+	@Override
+	public int mitigarDanio(int ataque) {
+		// el vínculo absorbe (vinculoEspiritual * 30 / 100) por ciento del daño (máximo 30%)
+		int porcentaje = this.vinculoEspiritual * 30 / 100;
+		return ataque - ataque * porcentaje / 100;
+	} // fin mitigarDanio
+
+	@Override
+	public String getTipo() {
+		return "Cazador";
+	}
+
+	public String toString() {
+		return super.toString() + "\nAgilidad: " + this.agilidad + "\nVínculo espiritual: " + this.vinculoEspiritual;
+	}
+
+} // fin clase
