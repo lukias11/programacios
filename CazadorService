@@ -1,0 +1,39 @@
+package logica;
+
+import java.sql.SQLException;
+
+import almacenamiento.PersonajeDAO_BD;
+import dominio.Personaje;
+import dominio.Cazador;
+
+public class CazadorService {
+	private PersonajeDAO_BD dao;
+
+	public CazadorService(PersonajeDAO_BD dao) {
+		this.dao = dao;
+	}
+
+	public boolean registrarCazador(String nombre, int nivel, int agilidad, int vinculoEspiritual) {
+		String nombreOficial = Personaje.normalizarNombre(nombre);
+		boolean yaExiste = false;
+		try {
+			// verificar si el nombre ya fue registrado antes
+			yaExiste = this.dao.existeNombre(nombreOficial);
+		} catch (SQLException e) {
+			// hubo un error, no se puede registrar
+			return false;
+		}
+		if (!yaExiste) {
+			if (nombre == null || nombre.isBlank() || nivel <= 0 || agilidad <= 0
+					|| vinculoEspiritual < 0 || vinculoEspiritual > Cazador.VINCULO_MAXIMO) {
+				return false;
+			}
+			Cazador auxPersonaje = new Cazador(nombre, nivel, agilidad, vinculoEspiritual);
+			return this.dao.guardarPersonaje(auxPersonaje);
+		} else {
+			// ya existe, no se puede registrar
+			return false;
+		}
+	} // fin registrar
+
+} // fin clase
