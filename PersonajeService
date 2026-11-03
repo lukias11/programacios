@@ -1,0 +1,68 @@
+package logica;
+
+import almacenamiento.PersonajeDAO_BD;
+import dominio.Personaje;
+
+// Operaciones comunes a los cuatro tipos de personaje
+public class PersonajeService {
+	private PersonajeDAO_BD dao;
+
+	public PersonajeService(PersonajeDAO_BD dao) {
+		this.dao = dao;
+	}
+
+	public String datosPersonaje(String nombre) {
+		// recuperar el personaje
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		// verificar que se pudo encontrar
+		if (auxPersonaje != null) {
+			return auxPersonaje.toString();
+		} else {
+			return "";
+		}
+	} // fin datos
+
+	// Devuelve el daño generado, o -1 si no se pudo atacar
+	public int atacar(String nombre) {
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		if (auxPersonaje != null) {
+			return auxPersonaje.generarAtaque();
+		} else {
+			// no se encontró, no se puede atacar
+			return -1;
+		}
+	} // fin atacar
+
+	// Devuelve el daño realmente recibido (ya mitigado), o -1 si no se pudo
+	public int recibirAtaque(String nombre, int ataque) {
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		if (auxPersonaje != null) {
+			int danio = auxPersonaje.recibirAtaque(ataque);
+			// danio es -1 si el ataque era inválido (negativo)
+			if (danio >= 0 && this.dao.actualizarPersonaje(auxPersonaje)) {
+				return danio;
+			} else {
+				return -1;
+			}
+		} else {
+			// no se encontró, no puede recibir el ataque
+			return -1;
+		}
+	} // fin recibirAtaque
+
+	public boolean modificarSalud(String nombre, int nuevaSalud) {
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		if (auxPersonaje != null) {
+			// setSalud devuelve false si la salud es negativa
+			if (auxPersonaje.setSalud(nuevaSalud)) {
+				return this.dao.actualizarPersonaje(auxPersonaje);
+			} else {
+				return false;
+			}
+		} else {
+			// no se encontró, no se puede modificar
+			return false;
+		}
+	} // fin modificarSalud
+
+} // fin clase
