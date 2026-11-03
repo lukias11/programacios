@@ -1,0 +1,63 @@
+package logica;
+
+import java.sql.SQLException;
+
+import almacenamiento.PersonajeDAO_BD;
+import dominio.Personaje;
+import dominio.Picaro;
+
+public class PicaroService {
+	private PersonajeDAO_BD dao;
+
+	public PicaroService(PersonajeDAO_BD dao) {
+		this.dao = dao;
+	}
+
+	public boolean registrarPicaro(String nombre, int nivel, int agilidad) {
+		String nombreOficial = Personaje.normalizarNombre(nombre);
+		boolean yaExiste = false;
+		try {
+			// verificar si el nombre ya fue registrado antes
+			yaExiste = this.dao.existeNombre(nombreOficial);
+		} catch (SQLException e) {
+			// hubo un error, no se puede registrar
+			return false;
+		}
+		if (!yaExiste) {
+			// verificar que los datos sean válidos
+			if (nombre == null || nombre.isBlank() || nivel <= 0 || agilidad <= 0) {
+				return false;
+			}
+			// crear nuevo personaje
+			Picaro auxPersonaje = new Picaro(nombre, nivel, agilidad);
+			// mandarlo guardar
+			return this.dao.guardarPersonaje(auxPersonaje);
+		} else {
+			// ya existe, no se puede registrar
+			return false;
+		}
+	} // fin registrar
+
+	public boolean activarSigilo(String nombre) {
+		// recuperar el personaje
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		// verificar que se encontró y que es del tipo correcto (instanceof da false si es null)
+		if (auxPersonaje instanceof Picaro) {
+			((Picaro) auxPersonaje).activarSigilo();
+			return this.dao.actualizarPersonaje(auxPersonaje);
+		} else {
+			return false;
+		}
+	} // fin activarSigilo
+
+	public boolean desactivarSigilo(String nombre) {
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		if (auxPersonaje instanceof Picaro) {
+			((Picaro) auxPersonaje).desactivarSigilo();
+			return this.dao.actualizarPersonaje(auxPersonaje);
+		} else {
+			return false;
+		}
+	} // fin desactivarSigilo
+
+} // fin clase
