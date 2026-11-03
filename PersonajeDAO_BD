@@ -1,0 +1,158 @@
+package almacenamiento;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import dominio.CaballeroMuerte;
+import dominio.Cazador;
+import dominio.Guerrero;
+import dominio.Personaje;
+import dominio.Picaro;
+
+public class PersonajeDAO_BD {
+	private static String URL = "jdbc:mysql://localhost:3306/rol_wow";
+	private static String USER = "root";
+	private static String PASSWORD = "123456";
+
+	private Connection conectar() throws SQLException {
+		return DriverManager.getConnection(URL, USER, PASSWORD);
+	}
+
+	public boolean existeNombre(String nombre) throws SQLException {
+		String sql = "SELECT nombre FROM personajes WHERE nombre = ?";
+		try (Connection conn = conectar();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, nombre);
+			try (ResultSet rs = ps.executeQuery()) {
+				// devolver si encontró algún registro o no
+				return rs.next();
+			}
+		}
+	} // fin existeNombre
+
+	public boolean guardarPersonaje(Personaje personaje) {
+		String sql = "INSERT INTO personajes (nombre, tipo, nivel, salud, fuerza, agilidad, "
+				+ "sigilo, enfurecido, poder_runico, vinculo_espiritual) VALUES (?,?,?,?,?,?,?,?,?,?)";
+		try (Connection conn = conectar();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+			if (!completarDatos(ps, personaje)) {
+				// tipo desconocido
+				return false;
+			}
+			ps.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			// hubo algún error al acceder a la BD
+			return false;
+		}
+	} // fin guardar
+
+	public boolean actualizarPersonaje(Personaje personaje) {
+		String sql = "UPDATE personajes SET nombre = ?, tipo = ?, nivel = ?, salud = ?, fuerza = ?, agilidad = ?, "
+				+ "sigilo = ?, enfurecido = ?, poder_runico = ?, vinculo_espiritual = ? WHERE nombre = ?";
+		try (Connection conn = conectar();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+			if (!completarDatos(ps, personaje)) {
+				// tipo desconocido
+				return false;
+			}
+			ps.setString(11, personaje.getNombre());
+			// devuelve true si se modificó exactamente un registro
+			return ps.executeUpdate() == 1;
+		} catch (SQLException e) {
+			// hubo algún error al acceder a la BD
+			return false;
+		}
+	} // fin actualizar
+
+	public Personaje buscarPersonaje(String nombre) {
+		String sql = "SELECT * FROM personajes WHERE nombre = ?";
+		try (Connection conn = conectar();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, nombre);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (!rs.next()) {
+					// no se encontró el nombre
+					return null;
+				}
+				// encontró el nombre, tomar los datos comunes
+				String auxNombre = rs.getString("nombre");
+				String auxTipo = rs.getString("tipo");
+				int auxNivel = rs.getInt("nivel");
+				int auxSalud = rs.getInt("salud");
+				Personaje personaje = null;
+				// crear el personaje del tipo correcto con los datos recuperados
+				if (auxTipo.equals("P")) {
+					Picaro picaro = new Picaro(auxNombre, auxNivel, rs.getInt("agilidad"));
+					picaro.setSigilo(rs.getBoolean("sigilo"));
+					personaje = picaro;
+				} else if (auxTipo.equals("G")) {
+					Guerrero guerrero = new Guerrero(auxNombre, auxNivel, rs.getInt("fuerza"));
+					guerrero.setEnfurecido(rs.getBoolean("enfurecido"));
+					personaje = guerrero;
+				} else if (auxTipo.equals("CM")) {
+					personaje = new CaballeroMuerte(auxNombre, auxNivel, rs.getInt("fuerza"),
+							rs.getInt("poder_runico"));
+				} else if (auxTipo.equals("C")) {
+					personaje = new Cazador(auxNombre, auxNivel, rs.getInt("agilidad"),
+							rs.getInt("vinculo_espiritual"));
+				}
+				if (personaje != null) {
+					personaje.setSalud(auxSalud);
+				}
+				return personaje;
+			}
+		} catch (SQLException e) {
+			// hubo algún error al acceder a la BD o los datos guardados eran inválidos
+			return null;
+		}
+	} // fin buscar
+
+	// Completa los 10 primeros parámetros (?) de la sentencia con los datos del personaje.
+	// Devuelve false si el tipo de personaje es desconocido.
+	private boolean completarDatos(PreparedStatement ps, Personaje personaje) throws SQLException {
+		String tipo = "";
+		int fuerza = 0;
+		int agilidad = 0;
+		boolean sigilo = false;
+		boolean enfurecido = false;
+		int poderRunico = 0;
+		int vinculo = 0;
+
+		if (personaje instanceof Picaro) {
+			tipo = "P";
+			agilidad = ((Picaro) personaje).getAgilidad();
+			sigilo = ((Picaro) personaje).tieneSigilo();
+		} else if (personaje instanceof Guerrero) {
+			tipo = "G";
+			fuerza = ((Guerrero) personaje).getFuerza();
+			enfurecido = ((Guerrero) personaje).estaEnfurecido();
+		} else if (personaje instanceof CaballeroMuerte) {
+			tipo = "CM";
+			fuerza = ((CaballeroMuerte) personaje).getFuerza();
+			poderRunico = ((CaballeroMuerte) personaje).getPoderRunico();
+		} else if (personaje instanceof Cazador) {
+			tipo = "C";
+			agilidad = ((Cazador) personaje).getAgilidad();
+			vinculo = ((Cazador) personaje).getVinculoEspiritual();
+		} else {
+			return false;
+		}
+
+		ps.setString(1, personaje.getNombre());
+		ps.setString(2, tipo);
+		ps.setInt(3, personaje.getNivel());
+		ps.setInt(4, personaje.getSalud());
+		ps.setInt(5, fuerza);
+		ps.setInt(6, agilidad);
+		ps.setBoolean(7, sigilo);
+		ps.setBoolean(8, enfurecido);
+		ps.setInt(9, poderRunico);
+		ps.setInt(10, vinculo);
+		return true;
+	} // fin completarDatos
+
+} // fin clase
