@@ -1,0 +1,99 @@
+package dominio;
+
+public  class Personaje {
+	// límite máximo de salud (igual para todos los personajes)
+	public static int SALUD_MAXIMA = 100;
+
+	private String nombre;
+	private int salud;
+	private int nivel;
+
+	public Personaje(String nombre, int nivel) {
+		// verificar si los datos son válidos
+		if (nombre == null || nombre.isBlank() || nivel <= 0) {
+			// datos inválidos generar Exception
+			throw new IllegalArgumentException();
+		}
+		// datos válidos: el nombre se guarda siempre en mayúsculas
+		this.nombre = normalizarNombre(nombre);
+		this.nivel = nivel;
+		// un personaje nuevo empieza con la salud al máximo
+		this.salud = SALUD_MAXIMA;
+	} // fin constructor
+
+	// deja el nombre en el formato oficial (sin espacios sobrantes y en mayúsculas)
+	public static String normalizarNombre(String nombre) {
+		if (nombre == null) {
+			return null;
+		}
+		return nombre.trim().toUpperCase();
+	}
+
+	public String getNombre() {
+		return this.nombre;
+	}
+
+	public int getSalud() {
+		return this.salud;
+	}
+
+	public int getNivel() {
+		return this.nivel;
+	}
+
+	public boolean estaInhabilitado() {
+		return (this.salud == 0);
+	}
+
+	public boolean setSalud(int salud) {
+		if (salud < 0) {
+			return false;
+		}
+		// restringir la salud al máximo permitido
+		this.salud = Math.min(salud, SALUD_MAXIMA);
+		return true;
+	}
+
+	// Un personaje inhabilitado siempre ataca con 0
+	public int generarAtaque() {
+		if (this.estaInhabilitado()) {
+			return 0;
+		}
+		return this.calcularAtaque();
+	} // fin generarAtaque
+
+	// Cada tipo de personaje define cómo calcula su ataque
+	public int calcularAtaque() {
+		return 0;
+	}
+
+	// Por defecto no se mitiga nada. Los tipos que mitigan lo sobrescriben
+	public int mitigarDanio(int ataque) {
+		return ataque;
+	}
+
+	// Devuelve el daño que realmente recibió el personaje, o -1 si el ataque es inválido
+	public int recibirAtaque(int ataque) {
+		if (ataque < 0) {
+			return -1;
+		}
+		int danio = this.mitigarDanio(ataque);
+		// la salud nunca baja de 0
+		this.salud = Math.max(0, this.salud - danio);
+		return danio;
+	} // fin recibirAtaque
+	
+	public String getTipo() {
+		return null;
+	}
+
+	public String toString() {
+		String estado = this.estaInhabilitado() ? "Inhabilitado" : "Habilitado";
+		return "Nombre: " + this.nombre + "\n"
+				+ "Tipo: " + this.getTipo() + "\n"
+				+ "Nivel: " + this.nivel + "\n"
+				+ "Salud: " + this.salud + " / " + SALUD_MAXIMA + "\n"
+				+ "Estado: " + estado;
+	}
+
+} // fin clase
