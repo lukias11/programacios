@@ -1,0 +1,39 @@
+package logica;
+
+import java.sql.SQLException;
+
+import almacenamiento.PersonajeDAO_BD;
+import dominio.Personaje;
+import dominio.CaballeroMuerte;
+
+public class CaballeroMuerteService {
+	private PersonajeDAO_BD dao;
+
+	public CaballeroMuerteService(PersonajeDAO_BD dao) {
+		this.dao = dao;
+	}
+
+	public boolean registrarCaballeroMuerte(String nombre, int nivel, int fuerza, int poderRunico) {
+		String nombreOficial = Personaje.normalizarNombre(nombre);
+		boolean yaExiste = false;
+		try {
+			// verificar si el nombre ya fue registrado antes
+			yaExiste = this.dao.existeNombre(nombreOficial);
+		} catch (SQLException e) {
+			// hubo un error, no se puede registrar
+			return false;
+		}
+		if (!yaExiste) {
+			if (nombre == null || nombre.isBlank() || nivel <= 0 || fuerza <= 0
+					|| poderRunico < 0 || poderRunico > CaballeroMuerte.PODER_RUNICO_MAXIMO) {
+				return false;
+			}
+			CaballeroMuerte auxPersonaje = new CaballeroMuerte(nombre, nivel, fuerza, poderRunico);
+			return this.dao.guardarPersonaje(auxPersonaje);
+		} else {
+			// ya existe, no se puede registrar
+			return false;
+		}
+	} // fin registrar
+
+} // fin clase
