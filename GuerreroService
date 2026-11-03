@@ -1,0 +1,60 @@
+package logica;
+
+import java.sql.SQLException;
+
+import almacenamiento.PersonajeDAO_BD;
+import dominio.Personaje;
+import dominio.Guerrero;
+
+public class GuerreroService {
+	private PersonajeDAO_BD dao;
+
+	public GuerreroService(PersonajeDAO_BD dao) {
+		this.dao = dao;
+	}
+
+	public boolean registrarGuerrero(String nombre, int nivel, int fuerza) {
+		String nombreOficial = Personaje.normalizarNombre(nombre);
+		boolean yaExiste = false;
+		try {
+			// verificar si el nombre ya fue registrado antes
+			yaExiste = this.dao.existeNombre(nombreOficial);
+		} catch (SQLException e) {
+			// hubo un error, no se puede registrar
+			return false;
+		}
+		if (!yaExiste) {
+			if (nombre == null || nombre.isBlank() || nivel <= 0 || fuerza <= 0) {
+				return false;
+			}
+			Guerrero auxPersonaje = new Guerrero(nombre, nivel, fuerza);
+			return this.dao.guardarPersonaje(auxPersonaje);
+		} else {
+			// ya existe, no se puede registrar
+			return false;
+		}
+	} // fin registrar
+
+	public boolean enfurecerGuerrero(String nombre) {
+		// recuperar el personaje
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		// verificar que se encontró y que es del tipo correcto (instanceof da false si es null)
+		if (auxPersonaje instanceof Guerrero) {
+			((Guerrero) auxPersonaje).enfurecer();
+			return this.dao.actualizarPersonaje(auxPersonaje);
+		} else {
+			return false;
+		}
+	} // fin enfurecer
+
+	public boolean calmarGuerrero(String nombre) {
+		Personaje auxPersonaje = this.dao.buscarPersonaje(Personaje.normalizarNombre(nombre));
+		if (auxPersonaje instanceof Guerrero) {
+			((Guerrero) auxPersonaje).calmar();
+			return this.dao.actualizarPersonaje(auxPersonaje);
+		} else {
+			return false;
+		}
+	} // fin calmar
+
+} // fin clase
