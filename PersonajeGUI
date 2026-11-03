@@ -1,0 +1,360 @@
+package interfaz;
+
+import java.awt.Color;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
+import logica.CaballeroMuerteService;
+import logica.CazadorService;
+import logica.GuerreroService;
+import logica.PersonajeService;
+import logica.PicaroService;
+
+public class PersonajeGUI extends JFrame {
+	private static final long serialVersionUID = 1L;
+	// services
+	private PersonajeService pService;
+	private PicaroService piService;
+	private GuerreroService gService;
+	private CaballeroMuerteService cmService;
+	private CazadorService cService;
+	// componentes
+	private JPanel contentPane;
+	private JTextField txtRegNombre;
+	private JTextField txtRegNivel;
+	private JTextField txtRegAtributo1;
+	private JTextField txtRegAtributo2;
+	private JTextField txtUsarNombre;
+	private JTextArea txtaUsarInfo;
+	private JTextField txtUsarDanio;
+	private JTextField txtUsarSalud;
+
+	public PersonajeGUI(PersonajeService pService, PicaroService piService, GuerreroService gService,
+			CaballeroMuerteService cmService, CazadorService cService) {
+		// conectar con los services
+		this.pService = pService;
+		this.piService = piService;
+		this.gService = gService;
+		this.cmService = cmService;
+		this.cService = cService;
+
+		// construir interface de REGISTRAR
+		setTitle("Personajes de rol");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 820, 440);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+
+		JSeparator separator = new JSeparator();
+		separator.setBackground(new Color(0, 0, 0));
+		separator.setOpaque(true);
+		separator.setBounds(360, 11, 2, 380);
+		contentPane.add(separator);
+
+		JLabel lblRegTitulo = new JLabel("REGISTRAR");
+		lblRegTitulo.setBounds(150, 5, 100, 22);
+		contentPane.add(lblRegTitulo);
+
+		JLabel lblRegTipo = new JLabel("Tipo:");
+		lblRegTipo.setBounds(10, 49, 100, 14);
+		contentPane.add(lblRegTipo);
+
+		JComboBox<String> cmbRegTipo = new JComboBox<>();
+		cmbRegTipo.setModel(new DefaultComboBoxModel<>(
+				new String[] { "Pícaro", "Guerrero", "Caballero de la Muerte", "Cazador" }));
+		cmbRegTipo.setBounds(130, 46, 200, 22);
+		contentPane.add(cmbRegTipo);
+
+		JLabel lblRegNombre = new JLabel("Nombre:");
+		lblRegNombre.setBounds(10, 82, 100, 14);
+		contentPane.add(lblRegNombre);
+
+		txtRegNombre = new JTextField();
+		txtRegNombre.setBounds(130, 79, 200, 20);
+		contentPane.add(txtRegNombre);
+
+		JLabel lblRegNivel = new JLabel("Nivel:");
+		lblRegNivel.setBounds(10, 115, 100, 14);
+		contentPane.add(lblRegNivel);
+
+		txtRegNivel = new JTextField();
+		txtRegNivel.setBounds(130, 112, 80, 20);
+		contentPane.add(txtRegNivel);
+
+		// Atributo 1: Agilidad (Pícaro, Cazador) o Fuerza (Guerrero, Caballero)
+		JLabel lblRegAtributo1 = new JLabel("Agilidad:");
+		lblRegAtributo1.setBounds(10, 148, 110, 14);
+		contentPane.add(lblRegAtributo1);
+
+		txtRegAtributo1 = new JTextField();
+		txtRegAtributo1.setBounds(130, 145, 80, 20);
+		contentPane.add(txtRegAtributo1);
+
+		// Atributo 2: Poder rúnico (Caballero) o Vínculo espiritual (Cazador)
+		JLabel lblRegAtributo2 = new JLabel("");
+		lblRegAtributo2.setBounds(10, 181, 120, 14);
+		contentPane.add(lblRegAtributo2);
+
+		txtRegAtributo2 = new JTextField();
+		txtRegAtributo2.setBounds(130, 178, 80, 20);
+		txtRegAtributo2.setEnabled(false);
+		contentPane.add(txtRegAtributo2);
+
+		JLabel lblRegAyuda = new JLabel("El nombre se guarda en mayúsculas.");
+		lblRegAyuda.setBounds(10, 215, 320, 14);
+		contentPane.add(lblRegAyuda);
+
+		// al cambiar el tipo, cambiar las etiquetas y habilitar/deshabilitar el atributo 2
+		cmbRegTipo.addActionListener(e -> {
+			txtRegAtributo2.setText("");
+			switch (cmbRegTipo.getSelectedIndex()) {
+			case 0: // Pícaro
+				lblRegAtributo1.setText("Agilidad:");
+				lblRegAtributo2.setText("");
+				txtRegAtributo2.setEnabled(false);
+				break;
+			case 1: // Guerrero
+				lblRegAtributo1.setText("Fuerza:");
+				lblRegAtributo2.setText("");
+				txtRegAtributo2.setEnabled(false);
+				break;
+			case 2: // Caballero de la Muerte
+				lblRegAtributo1.setText("Fuerza:");
+				lblRegAtributo2.setText("Poder rúnico (0-100):");
+				txtRegAtributo2.setEnabled(true);
+				break;
+			case 3: // Cazador
+				lblRegAtributo1.setText("Agilidad:");
+				lblRegAtributo2.setText("Vínculo esp. (0-100):");
+				txtRegAtributo2.setEnabled(true);
+				break;
+			}
+		});
+
+		JButton btnRegRegistrar = new JButton("REGISTRAR");
+		btnRegRegistrar.addActionListener(e -> {
+			try {
+				// tomar datos
+				String auxNombre = txtRegNombre.getText();
+				int auxNivel = Integer.valueOf(txtRegNivel.getText());
+				int auxAtr1 = Integer.valueOf(txtRegAtributo1.getText());
+				boolean regOK = false;
+				switch (cmbRegTipo.getSelectedIndex()) {
+				case 0: // Pícaro
+					regOK = piService.registrarPicaro(auxNombre, auxNivel, auxAtr1);
+					break;
+				case 1: // Guerrero
+					regOK = gService.registrarGuerrero(auxNombre, auxNivel, auxAtr1);
+					break;
+				case 2: // Caballero de la Muerte
+					int auxPoder = Integer.valueOf(txtRegAtributo2.getText());
+					regOK = cmService.registrarCaballeroMuerte(auxNombre, auxNivel, auxAtr1, auxPoder);
+					break;
+				case 3: // Cazador
+					int auxVinculo = Integer.valueOf(txtRegAtributo2.getText());
+					regOK = cService.registrarCazador(auxNombre, auxNivel, auxAtr1, auxVinculo);
+					break;
+				} // fin switch
+				if (regOK) {
+					mostrarInfo("Registración correcta.");
+					// limpiar el formulario
+					txtRegNombre.setText("");
+					txtRegNivel.setText("");
+					txtRegAtributo1.setText("");
+					txtRegAtributo2.setText("");
+				} else {
+					mostrarError("No se pudo registrar (¿nombre repetido o datos fuera de rango?).");
+				}
+			} catch (Exception eEx) {
+				mostrarError("Datos inválidos");
+			}
+		});
+		btnRegRegistrar.setBounds(210, 250, 120, 25);
+		contentPane.add(btnRegRegistrar);
+
+		// construir interface de USAR
+
+		JLabel lblUsarTitulo = new JLabel("USAR");
+		lblUsarTitulo.setBounds(570, 5, 60, 22);
+		contentPane.add(lblUsarTitulo);
+
+		JLabel lblUsarNombre = new JLabel("Nombre:");
+		lblUsarNombre.setBounds(375, 35, 70, 14);
+		contentPane.add(lblUsarNombre);
+
+		txtUsarNombre = new JTextField();
+		txtUsarNombre.setBounds(450, 32, 150, 20);
+		contentPane.add(txtUsarNombre);
+
+		JButton btnUsarBuscar = new JButton("BUSCAR");
+		btnUsarBuscar.addActionListener(e -> {
+			txtaUsarInfo.setText("");
+			mostrarDatos(txtUsarNombre.getText());
+		});
+		btnUsarBuscar.setBounds(615, 30, 100, 23);
+		contentPane.add(btnUsarBuscar);
+
+		JLabel lblUsarInfo = new JLabel("Información:");
+		lblUsarInfo.setBounds(375, 65, 100, 14);
+		contentPane.add(lblUsarInfo);
+
+		txtaUsarInfo = new JTextArea();
+		txtaUsarInfo.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
+		txtaUsarInfo.setEditable(false);
+		txtaUsarInfo.setLineWrap(true);
+		txtaUsarInfo.setBounds(375, 85, 400, 135);
+		contentPane.add(txtaUsarInfo);
+
+		JButton btnUsarAtacar = new JButton("ATACAR");
+		btnUsarAtacar.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			int danio = pService.atacar(auxNombre);
+			if (danio >= 0) {
+				mostrarInfo("El ataque produjo " + danio + " puntos de daño.");
+				mostrarDatos(auxNombre);
+			} else {
+				mostrarError("No se pudo atacar");
+			}
+		});
+		btnUsarAtacar.setBounds(375, 235, 100, 23);
+		contentPane.add(btnUsarAtacar);
+
+		JLabel lblUsarDanio = new JLabel("Ataque recibido:");
+		lblUsarDanio.setBounds(375, 273, 110, 14);
+		contentPane.add(lblUsarDanio);
+
+		txtUsarDanio = new JTextField();
+		txtUsarDanio.setBounds(490, 270, 60, 20);
+		contentPane.add(txtUsarDanio);
+
+		JButton btnUsarRecibir = new JButton("RECIBIR ATAQUE");
+		btnUsarRecibir.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			try {
+				int auxAtaque = Integer.valueOf(txtUsarDanio.getText());
+				int danio = pService.recibirAtaque(auxNombre, auxAtaque);
+				if (danio >= 0) {
+					mostrarInfo("Daño recibido (después de mitigar): " + danio);
+					mostrarDatos(auxNombre);
+				} else {
+					mostrarError("No se pudo recibir el ataque");
+				}
+			} catch (Exception eEx) {
+				mostrarError("Datos inválidos");
+			}
+		});
+		btnUsarRecibir.setBounds(565, 268, 150, 23);
+		contentPane.add(btnUsarRecibir);
+
+		JLabel lblUsarSalud = new JLabel("Nueva salud:");
+		lblUsarSalud.setBounds(375, 308, 110, 14);
+		contentPane.add(lblUsarSalud);
+
+		txtUsarSalud = new JTextField();
+		txtUsarSalud.setBounds(490, 305, 60, 20);
+		contentPane.add(txtUsarSalud);
+
+		JButton btnUsarSalud = new JButton("MODIFICAR SALUD");
+		btnUsarSalud.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			try {
+				int auxSalud = Integer.valueOf(txtUsarSalud.getText());
+				if (pService.modificarSalud(auxNombre, auxSalud)) {
+					mostrarInfo("Salud modificada.");
+					mostrarDatos(auxNombre);
+				} else {
+					mostrarError("No se pudo modificar la salud");
+				}
+			} catch (Exception eEx) {
+				mostrarError("Datos inválidos");
+			}
+		});
+		btnUsarSalud.setBounds(565, 303, 150, 23);
+		contentPane.add(btnUsarSalud);
+
+		// habilidades especiales
+		JButton btnSigiloOn = new JButton("SIGILO ON");
+		btnSigiloOn.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			if (piService.activarSigilo(auxNombre)) {
+				mostrarInfo("Sigilo activado.");
+				mostrarDatos(auxNombre);
+			} else {
+				mostrarError("No se pudo activar el sigilo (¿es un Pícaro?)");
+			}
+		});
+		btnSigiloOn.setBounds(375, 345, 105, 23);
+		contentPane.add(btnSigiloOn);
+
+		JButton btnSigiloOff = new JButton("SIGILO OFF");
+		btnSigiloOff.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			if (piService.desactivarSigilo(auxNombre)) {
+				mostrarInfo("Sigilo desactivado.");
+				mostrarDatos(auxNombre);
+			} else {
+				mostrarError("No se pudo desactivar el sigilo (¿es un Pícaro?)");
+			}
+		});
+		btnSigiloOff.setBounds(485, 345, 105, 23);
+		contentPane.add(btnSigiloOff);
+
+		JButton btnEnfurecerOn = new JButton("ENFURECER ON");
+		btnEnfurecerOn.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			if (gService.enfurecerGuerrero(auxNombre)) {
+				mostrarInfo("Guerrero enfurecido.");
+				mostrarDatos(auxNombre);
+			} else {
+				mostrarError("No se pudo enfurecer (¿es un Guerrero?)");
+			}
+		});
+		btnEnfurecerOn.setBounds(375, 375, 120, 23);
+		contentPane.add(btnEnfurecerOn);
+
+		JButton btnEnfurecerOff = new JButton("ENFURECER OFF");
+		btnEnfurecerOff.addActionListener(e -> {
+			String auxNombre = txtUsarNombre.getText();
+			if (gService.calmarGuerrero(auxNombre)) {
+				mostrarInfo("Guerrero calmado.");
+				mostrarDatos(auxNombre);
+			} else {
+				mostrarError("No se pudo calmar (¿es un Guerrero?)");
+			}
+		});
+		btnEnfurecerOff.setBounds(500, 375, 130, 23);
+		contentPane.add(btnEnfurecerOff);
+	}
+
+	// Pide los datos al service y actualiza el área de información
+	private void mostrarDatos(String nombre) {
+		String auxDatos = pService.datosPersonaje(nombre);
+		if (!auxDatos.isEmpty()) {
+			txtaUsarInfo.setText(auxDatos);
+		} else {
+			txtaUsarInfo.setText("");
+			mostrarError("No se pudo recuperar la información.");
+		}
+	}
+
+	private void mostrarInfo(String mensaje) {
+		JOptionPane.showMessageDialog(null, mensaje, "Confirmación", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	private void mostrarError(String mensaje) {
+		JOptionPane.showMessageDialog(null, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+}
