@@ -1,0 +1,54 @@
+package dominio;
+
+public class Picaro extends Personaje {
+	private int agilidad;
+	private boolean sigilo;
+
+	public Picaro(String nombre, int nivel, int agilidad) {
+		super(nombre, nivel);
+		this.agilidad = agilidad;
+		this.sigilo = false;
+	} // fin constructor
+
+	public int getAgilidad() {
+		return this.agilidad;
+	}
+
+	public void activarSigilo() {
+		this.sigilo = true;
+	}
+
+	public void desactivarSigilo() {
+		this.sigilo = false;
+	}
+
+	public boolean tieneSigilo() {
+		return this.sigilo;
+	}
+
+	// usado por el DAO para reconstruir el estado
+	public void setSigilo(boolean sigilo) {
+		this.sigilo = sigilo;
+	}
+
+	@Override
+	public int calcularAtaque() {
+		int ataque = this.agilidad + this.getNivel();
+		if (this.sigilo) {
+			// con sigilo: 50% de daño adicional
+			ataque = ataque + ataque / 2;
+		}
+		return ataque;
+	} // fin calcularAtaque
+
+	@Override
+	public String getTipo() {
+		return "Pícaro";
+	}
+
+	public String toString() {
+		String estado = this.sigilo ? "activado" : "desactivado";
+		return super.toString() + "\nAgilidad: " + this.agilidad + "\nSigilo: " + estado;
+	}
+
+} // fin clase
