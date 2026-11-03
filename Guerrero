@@ -1,0 +1,63 @@
+package dominio;
+
+public class Guerrero extends Personaje {
+	private int fuerza;
+	private boolean enfurecido;
+
+	public Guerrero(String nombre, int nivel, int fuerza) {
+		super(nombre, nivel);
+		this.fuerza = fuerza;
+		this.enfurecido = false;
+	} // fin constructor
+
+	public int getFuerza() {
+		return this.fuerza;
+	}
+
+	public void enfurecer() {
+		this.enfurecido = true;
+	}
+
+	public void calmar() {
+		this.enfurecido = false;
+	}
+
+	public boolean estaEnfurecido() {
+		return this.enfurecido;
+	}
+
+	// usado por el DAO para reconstruir el estado
+	public void setEnfurecido(boolean enfurecido) {
+		this.enfurecido = enfurecido;
+	}
+
+	@Override
+	public int calcularAtaque() {
+		int ataque = this.fuerza + this.getNivel();
+		if (this.enfurecido) {
+			// enfurecido: 50% de daño adicional
+			ataque = ataque + ataque / 2;
+		}
+		return ataque;
+	} // fin calcularAtaque
+
+	@Override
+	public int mitigarDanio(int ataque) {
+		if (this.enfurecido) {
+			// enfurecido: tolera mejor el daño, recibe 25% menos
+			return ataque - ataque * 25 / 100;
+		}
+		return ataque;
+	} // fin mitigarDanio
+
+	@Override
+	public String getTipo() {
+		return "Guerrero";
+	}
+
+	public String toString() {
+		String estado = this.enfurecido ? "activado" : "desactivado";
+		return super.toString() + "\nFuerza: " + this.fuerza + "\nEnfurecer: " + estado;
+	}
+
+} // fin clase
