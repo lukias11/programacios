@@ -1,0 +1,38 @@
+package interfaz;
+
+import java.awt.EventQueue;
+
+import almacenamiento.PersonajeDAO_BD;
+import logica.CaballeroMuerteService;
+import logica.CazadorService;
+import logica.GuerreroService;
+import logica.PersonajeService;
+import logica.PicaroService;
+
+public class MainGUI {
+
+	public static void main(String[] args) {
+		// capa de datos
+		PersonajeDAO_BD dao = new PersonajeDAO_BD();
+
+		// capa de lógica
+		PersonajeService pService = new PersonajeService(dao);
+		PicaroService piService = new PicaroService(dao);
+		GuerreroService gService = new GuerreroService(dao);
+		CaballeroMuerteService cmService = new CaballeroMuerteService(dao);
+		CazadorService cService = new CazadorService(dao);
+
+		// capa de presentación
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					PersonajeGUI frame = new PersonajeGUI(pService, piService, gService, cmService, cService);
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+}
